@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# create or renew SSL certificate
+#
+# author: hugo.vanduijn@naturalis.nl
+#
+
+cd <%= scope.lookupvar('letsencryptssl::script_url') %>
+certbot --server <%= @letsencrypt_server %> certonly \
+  --manual --email aut@naturalis.nl --manual-public-ip-logging-ok --agree-tos --non-interactive \
+  --preferred-challenges dns \
+  --expand --renew-by-default \
+  --config-dir /etc/letsencrypt \
+  --logs-dir /var/log/letsencrypt \
+  --work-dir ./ \
+  --manual-auth-hook ./auth-hook --manual-cleanup-hook ./cleanup-hook \
+  -d <%= @letsencrypt_domains.join(" -d ")%>
+
+
+

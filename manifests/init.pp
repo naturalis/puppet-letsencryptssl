@@ -7,13 +7,7 @@
 #
 #
 class letsencryptssl (
-#  Hash $letsencrypt_hash        = { 'determineren' => { 'letsencrypt_domains' => ['determineren.nederlandsesoorten.nl','determinatie.nederlandsesoorten.nl']},
-#                                    'nsr' => { 'letsencrypt_domains' => ['nederlandsesoorten.nl','www.nederlandsesoorten.nl','soortenregister.nl','www.soortenregist']},
-#                                    'dcr' => { 'letsencrypt_domains' => ['dutchcaribbeanspecies.org','www.dutchcaribbeanspecies.org']},
-#                                    'dierenzoeker' => { 'letsencrypt_domains' => ['www.dierenzoeker.nl','dierenzoeker.nl','www.dierezoeker.nl']},
-#                                    'grasshoppers' => { 'letsencrypt_domains' => ['www.grasshoppersofeurope.com','grasshoppersofeurope.com','www.ortheur.org','orthe']}
-#                                  },
-  Hash $letsencrypt_hash        = { 'puppet4-foreman-prd' => { 'letsencrypt_domains' => ['puppet4-foreman-prd.naturalis.nl']}},
+  Hash $letsencrypt_hash        = { 'puppet4-foreman-prd' => { 'letsencrypt_server' => 'https://acme-v02.api.letsencrypt.org/directory', 'letsencrypt_domains' => ['puppet4-foreman-prd-001.naturalis.nl']}},
   $letsencrypt_email            = 'aut@naturalis.nl',
   $transip_api_url              = 'https://api.transip.nl/downloads',
   $transip_api_file             = 'transapi_transip.nl_v5_8.tar.gz',
@@ -99,8 +93,15 @@ class letsencryptssl (
     require => [Class['apt::update'],Apt::Ppa['ppa:certbot/certbot'],Apt::Key['certbot']]
   }
 
-
   create_resources('letsencryptssl::lbssl', $letsencrypt_hash,{})
+
+# create cron task to renew certificates every 15 minutes
+  cron { 'certbot renew':
+    command     => 'certbot --renew',
+    user        => root,
+    hour        => '*/6',
+  }
+
 
 
 }
