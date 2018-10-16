@@ -1,0 +1,7 @@
+#!/bin/bash
+array=( '<%= @cert_server %>'  )
+for ip in "${array[@]}"
+do
+    ssh-keygen -R $ip
+    ssh-keyscan -H $ip >> /root/.ssh/known_hosts
+done
