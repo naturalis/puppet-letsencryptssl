@@ -16,15 +16,19 @@ class letsencryptssl (
   $packages                     = ['git','php','php-soap','php-xml'],
   $transip_login,
   $transip_privatekey,
+  $certbot_ssh_server_pubkey    = '<PUBLIC KEY>',
 ){
 
+# ensure required packages are installed
   ensure_packages($packages)
 
+# create script_url ( main working directory)
   file { $script_url:
     ensure             => directory,
     mode               => '0700',
   }
 
+# install and configure TransIP API
   exec { 'download and unpack transip API':
       command        => "/usr/bin/wget ${transip_api_url}/${transip_api_file} -O ${script_url}/${transip_api_file} && /bin/tar -xf ${script_url}/${transip_api_file} -C ${script_url}",
       unless         => "/usr/bin/test -f ${script_url}/${transip_api_file}",
@@ -37,6 +41,7 @@ class letsencryptssl (
     require  => File[$script_url]
   }
 
+# clone certbotvalidator
   vcsrepo { "${script_url}/certbotvalidator":
       ensure    => present,
       provider  => 'git',
@@ -46,6 +51,7 @@ class letsencryptssl (
       require   => [Package['git'],File[$script_url]]
   }
 
+# create symlinks for validators into script_dir
   file { "${script_url}/auth-hook":
     ensure      => 'link',
     target      => "${script_url}/certbotvalidator/auth-hook",
@@ -70,6 +76,7 @@ class letsencryptssl (
     require     => Vcsrepo["${script_url}/certbotvalidator"]
   }
 
+# TransIP API uses short_open_tags, those are not enabled by default
   file_line { 'Enable short_open_tag in php':
     ensure            => present,
     path              => '/etc/php/7.0/cli/php.ini',
@@ -78,7 +85,7 @@ class letsencryptssl (
     require           => Package['php']
   }
 
-  # Install required certbot
+# Install certbot using custom apt repository
   class { 'apt': }
   apt::key { 'certbot':
     id      => '7BF576066ADA65728FC7E70A8C47BE8E75BCA694',
@@ -93,15 +100,15 @@ class letsencryptssl (
     require => [Class['apt::update'],Apt::Ppa['ppa:certbot/certbot'],Apt::Key['certbot']]
   }
 
-  create_resources('letsencryptssl::lbssl', $letsencrypt_hash,{})
-
-# create cron task to renew certificates every 15 minutes
-  cron { 'certbot renew':
-    command     => 'certbot --renew',
-    user        => root,
-    hour        => '*/6',
+# adding public key for accessing cert store from remote server
+  ssh_authorized_key { 'getcerts@root':
+    user        => 'root',
+    type        => 'ssh-rsa',
+    key         => $certbot_ssh_server_pubkey,
   }
 
+# create certificates based on hash
+  create_resources('letsencryptssl::createcert', $letsencrypt_hash,{})
 
 
 }

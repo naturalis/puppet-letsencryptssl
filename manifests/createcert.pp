@@ -5,10 +5,10 @@
 # Author Name <hugo.vanduijn@naturalis.nl>
 #
 #
-define letsencryptssl::lbssl (
+define letsencryptssl::createcert (
   $letsencrypt_domains,
   $letsencrypt_server   = 'https://acme-staging-v02.api.letsencrypt.org/directory',
-  $cert_file            = "/etc/letsencrypt/live/${letsencrypt_domains[0]}/cert.pem",
+  $cert_file            = "/etc/letsencrypt/${letsencrypt_domains[0]}/live/${letsencrypt_domains[0]}/cert.pem",
   $cert_name            = $title,
   $cert_renew_days      = '30', # don't set this higher than 30 due to --keep-until-renewal option
   $cert_warning_days    = '14',
@@ -16,7 +16,7 @@ define letsencryptssl::lbssl (
 )
 {
 
-# create script from template
+# create request certificate script from template
   file { "/usr/local/sbin/create_cert_${title}.sh":
     mode    => '0755',
     content => template('letsencryptssl/create_cert.sh.erb'),
@@ -32,6 +32,14 @@ define letsencryptssl::lbssl (
     timeout     => 1800,
   }
 
+# create random weekly renewal cronjob
+  cron { "certbot ${title} renewal job":
+    command     => "certbot renew --config-dir /etc/letsencrypt/${letsencrypt_domains[0]}",
+    weekday     => fqdn_rand(6,$title),
+    hour        => fqdn_rand(23,$title),
+    minute      => fqdn_rand(59,$title),
+  }
+
 # create check script from template
   file { "/usr/local/sbin/chkcert_${title}.sh":
     mode    => '0755',
@@ -42,8 +50,7 @@ define letsencryptssl::lbssl (
   @sensu::check { "Check certificate ${title}":
     command => "/usr/local/sbin/chkcert_${title}.sh sensu",
     tag     => 'central_sensu',
-}
-
+  }
 
 }
 

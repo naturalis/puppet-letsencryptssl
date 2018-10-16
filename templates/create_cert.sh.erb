@@ -10,7 +10,7 @@ certbot --server <%= @letsencrypt_server %> certonly \
   --manual --email aut@naturalis.nl --manual-public-ip-logging-ok --agree-tos --non-interactive \
   --preferred-challenges dns \
   --expand --renew-by-default \
-  --config-dir /etc/letsencrypt \
+  --config-dir /etc/letsencrypt/<%= @letsencrypt_domains[0] %>/ \
   --logs-dir /var/log/letsencrypt \
   --work-dir ./ \
   --manual-auth-hook ./auth-hook --manual-cleanup-hook ./cleanup-hook \

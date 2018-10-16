@@ -1,20 +1,26 @@
 letsencryptssl
 ===================
 
-Puppet role definition for requesting ssl certificates using transip dns hooks
+Puppet role definition for requesting ssl certificates using transip dns hooks. 
+- letsencryptssl main manifest for requesting certificates
+- createcert create certificates, checks and renewal cronjob
+- getcerts will fetch all certificates from cert server to puppet server or somewhere else
+- install cert will install a certificate on a server
 
 Parameters
 -------------
 Sensible defaults for Naturalis in init.pp.
 
-````
+```
 ```
 
 
 Classes
 -------------
-- letsencryptssl::init
-
+- letsencryptssl
+- letsencryptssl::getcerts
+- letsencryptssl::installcert
+- letsencryptssl::createcert
 
 Dependencies
 -------------
