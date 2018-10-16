@@ -26,7 +26,17 @@ class letsencryptssl::getcerts (
     user        => root,
     hour        => '*/6',
     minute      => '30',
+    notify      => Exec['one time run getcerts'],
+    require     => [File['/root/.ssh/certbot.key'],Exec["ssh_known_host_${cert_server}"]]
   }
+
+# one time run job
+  exec { 'one time run getcerts':
+    command     => "/usr/bin/rsync -rulmog --delete -f'- accounts' -f='- csr' -f='- keys' -f='- renewal' --chown=puppet:puppet -e '/usr/bin/ssh -i /root/.ssh/certbot.key' ${cert_server_ssh_user}@${cert_server}:${cert_server_dir} ${local_dir}",
+    user        => root,
+    refreshonly => true,
+  }
+
 
 # exec ssh-keyscan for adding cert server to known_hosts
   exec { "ssh_known_host_${cert_server}":
