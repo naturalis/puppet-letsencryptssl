@@ -13,15 +13,26 @@ class letsencryptssl::installcert (
   $docker_container         = 'app_apache_1',
 ){
 
+# create dirs
+  file { ['/etc/letsencrypt','/etc/letsencrypt/live']:
+    ensure         => 'directory'
+  }
+
 # loop through cert_array install files on server and notify changes
   $cert_array.each |String $cert| {
-    file { "/etc/letsencrypt/":
-      source       => "puppet:///modules/letsencryptssl/$cert",
+    file { "/etc/letsencrypt/$cert":
+      source       => "puppet:///modules/letsencryptssl/$cert/",
       purge        => true,
       recurse      => true,
       mode         => '0600',
       recurselimit => 3,
       notify       => Exec['reload webservice'],
+    }
+    file { "/etc/letsencrypt/live/$cert":
+      ensure       => 'link',
+      target       => "/etc/letsencrypt/${cert}/live/${cert}",
+      force        => true,
+      require      => [File["/etc/letsencrypt/$cert"],File['/etc/letsencrypt/live']]
     }
   }
 
