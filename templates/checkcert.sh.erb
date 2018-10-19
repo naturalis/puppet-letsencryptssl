@@ -11,13 +11,9 @@ cert_warning_days=<%= @cert_warning_days %>
 cert_critical_days=<%= @cert_critical_days %>
 cert_renew_days=<%= @cert_renew_days %>
 
-# if running as sensu user then read date from /tmp/cert_name.days, if not then create the /tmp/cert_name.days file
-if [ "$1" == "sensu" ]; then
-  date=$(cat /tmp/$cert_name.days)
-else
-  date=$(openssl x509 -in $cert_file -enddate -noout | sed "s/.*=\(.*\)/\1/") 
-  echo $date > /tmp/$cert_name.days
-fi
+date=$(openssl x509 -in $cert_file -enddate -noout | sed "s/.*=\(.*\)/\1/") 
+echo $date > /tmp/$cert_name.days
+
 date_s=$(date -d "${date}" +%s)
 now_s=$(date -d now +%s)
 date_diff=$(( (date_s - now_s) / 86400 ))

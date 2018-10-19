@@ -46,9 +46,18 @@ define letsencryptssl::createcert (
     content => template('letsencryptssl/checkcert.sh.erb'),
   }
 
+# Add sudoers lines
+  $sudoers_array = ["sensu ALL = (root) NOPASSWD : /usr/local/sbin/chkcert_${title}.sh"]
+  $sudoers_array.each |String $sudoers_line| {
+    file_line {$sudoers_line:
+      path   => '/etc/sudoers',
+      line   => $sudoers_line
+    }
+  }
+
 # export check so sensu monitoring can make use of it
   @sensu::check { "Check certificate ${title}":
-    command => "/usr/local/sbin/chkcert_${title}.sh sensu",
+    command => "sudo /usr/local/sbin/chkcert_${title}.sh",
     tag     => 'central_sensu',
   }
 
