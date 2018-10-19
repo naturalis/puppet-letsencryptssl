@@ -9,7 +9,7 @@
 class letsencryptssl::installcert (
   $cert_array               = [],
   $cert_webservice          = 'apache2',
-  Boolean $docker           = false,
+  $docker           = false,
   $docker_container         = 'app_apache_1',
 ){
 

@@ -7,7 +7,7 @@
 #
 #
 class letsencryptssl (
-  Hash $letsencrypt_hash        = { 'puppet4-foreman-prd' => { 'letsencrypt_server' => 'https://acme-v02.api.letsencrypt.org/directory', 'letsencrypt_domains' => ['puppet4-foreman-prd-001.naturalis.nl']}},
+  $letsencrypt_hash        = { 'puppet4-foreman-prd' => { 'letsencrypt_server' => 'https://acme-v02.api.letsencrypt.org/directory', 'letsencrypt_domains' => ['puppet4-foreman-prd-001.naturalis.nl']}},
   $letsencrypt_email            = 'aut@naturalis.nl',
   $transip_api_url              = 'https://api.transip.nl/downloads',
   $transip_api_file             = 'transapi_transip.nl_v5_8.tar.gz',
