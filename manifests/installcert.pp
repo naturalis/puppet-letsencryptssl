@@ -9,11 +9,11 @@
 class letsencryptssl::installcert (
   $cert_array               = [],
   $cert_webservice          = 'apache2',
-  $docker           = false,
+  $docker                   = false,
   $docker_container         = 'app_apache_1',
 ){
 
-# loop through cert_array install files on server and notify changes 
+# loop through cert_array install files on server and notify changes
   $cert_array.each |String $cert| {
     file { "/etc/letsencrypt/":
       source       => "puppet:///modules/letsencryptssl/$cert",
