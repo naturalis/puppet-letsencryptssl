@@ -10,6 +10,10 @@ class letsencryptssl::installcert (
   $cert_array               = [],
   $cert_webservice          = 'apache2',
   $docker                   = false,
+  $docker_compose           = false,
+  $docker_compose_dir       = '/opt/docker-app',
+  $docker_compose_container = 'traefik',
+  $docker_compose_action    = 'restart',
   $docker_container         = 'app_apache_1',
 ){
 
@@ -39,14 +43,21 @@ class letsencryptssl::installcert (
 # define reload command based on variables
   if ($docker == true){
     $reloadcommand = "docker exec ${docker_container} service ${cert_webservice} reload"
+    $execpath = "/opt"
+  }
+  elsif ($docker_compose == true){
+    $reloadcommand = "docker-compose ${docker_compose_action} ${docker_compose_container}"
+    $execpath = $docker_compose_dir
   }else{
     $reloadcommand = "service ${cert_webservice} reload"
+    $execpath = "/opt"
   }
 
 # reload webservice when cert is installed
   exec {'reload webservice':
     command      => $reloadcommand,
-    path         => '/usr/bin:/usr/sbin:/bin',
+    path         => '/usr/bin:/usr/sbin:/bin:/usr/local/bin',
+    cwd          => $execpath,
     refreshonly  => true
   }
 
