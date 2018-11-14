@@ -39,6 +39,11 @@ class letsencryptssl (
     mode     => '0600',
     content  => template('letsencryptssl/apisettings.php.erb'),
     require  => File[$script_url]
+  } ->
+  file_line { 'Add CAA type':
+    path     => "${script_url}/Transip/DnsEntry.php",
+    line     => "    const TYPE_CAA = 'CAA';",
+    after    => "const\ TYPE_SRV\ =\ \'SRV\'\;"
   }
 
 # clone certbotvalidator
@@ -70,11 +75,20 @@ class letsencryptssl (
     require     => Vcsrepo["${script_url}/certbotvalidator"]
   }
 
+# customized hooks.php which include making backup of domain.
   file { "${script_url}/hooks.php":
-    ensure      => 'link',
-    target      => "${script_url}/certbotvalidator/hooks.php",
-    require     => Vcsrepo["${script_url}/certbotvalidator"]
+    mode        => '0600',
+    content     => template('letsencryptssl/hooks.php.erb'),
+    ensure      => 'file',
   }
+
+# rescue DNS script
+  file { "${script_url}/rescuedns.php":
+    mode        => '0600',
+    content     => template('letsencryptssl/rescuedns.php.erb'),
+    ensure      => 'file',
+  }
+
 
 # TransIP API uses short_open_tags, those are not enabled by default
   file_line { 'Enable short_open_tag in php':

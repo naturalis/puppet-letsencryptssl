@@ -46,6 +46,22 @@ define letsencryptssl::createcert (
     content => template('letsencryptssl/checkcert.sh.erb'),
   }
 
+# create add CAA dns records script from template
+  file { "/opt/letsencryptssl/create_CAA_${title}.php":
+    mode    => '0755',
+    content => template('letsencryptssl/create_CAA.php.erb'),
+    notify  => Exec["Add CAA records for ${title}"]
+  }
+
+# run CAA script only when script is created or changed.
+  exec { "Add CAA records for ${title}":
+    refreshonly => true,
+    cwd         => "/opt/letsencrypt",
+    command     => "php /opt/letsencrypt/create_CAA_${title}.php",
+    path        => ['/usr/local/sbin','/usr/local/bin','/usr/sbin','/usr/bin','/sbin','/bin','/snap/bin',],
+  }
+
+
 # Add sudoers lines
   $sudoers_array = ["sensu ALL = (root) NOPASSWD : /usr/local/sbin/chkcert_${title}.sh"]
   $sudoers_array.each |String $sudoers_line| {

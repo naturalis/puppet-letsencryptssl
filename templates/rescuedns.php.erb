@@ -1,0 +1,29 @@
+<?php
+
+require_once('dns.php');
+require_once('Transip/DomainService.php');
+
+// enter variables here
+$recovery_dir = '/opt/letsencryptssl/dnsbackups/';
+$base_domain = 'identifylife.eu';
+$backup_set = 'latests';
+
+// get data file
+$data = file_get_contents($recovery_dir.$base_domain.'_'.'latest');
+$dnsEntries = unserialize($data);
+
+
+// save new DNS records
+try {
+Transip_DomainService::setDnsEntries($base_domain, $dnsEntries);
+#var_dump($dnsEntries);
+
+}
+catch (SoapFault $e) {
+	echo $e->getMessage() . PHP_EOL;
+	exit(1);
+}
+
+
+exit(0);
+
