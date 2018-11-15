@@ -56,8 +56,8 @@ define letsencryptssl::createcert (
 # run CAA script only when script is created or changed.
   exec { "Add CAA records for ${title}":
     refreshonly => true,
-    cwd         => "/opt/letsencrypt",
-    command     => "php /opt/letsencrypt/create_CAA_${title}.php",
+    cwd         => "/opt/letsencryptssl",
+    command     => "php /opt/letsencryptssl/create_CAA_${title}.php",
     path        => ['/usr/local/sbin','/usr/local/bin','/usr/sbin','/usr/bin','/sbin','/bin','/snap/bin',],
   }
 
